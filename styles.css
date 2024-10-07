@@ -1,55 +1,108 @@
-body {
-    font-family: Arial, sans-serif;
+/* Reset de márgenes y padding */
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif; /* Letras infantiles */
+    text-align: center;
+    background: linear-gradient(135deg, #40E0D0, #3CB371); /* Turquesa y verde */
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     padding: 20px;
-    background-color: #f4f4f4;
 }
 
-.section {
-    display: none;
+header {
+    margin-bottom: 20px;
 }
 
-.section.active {
-    display: block;
+h1 {
+    font-size: 3rem;
+    text-shadow: 3px 3px #2E8B57;
 }
 
 h2 {
-    color: #333;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px #2E8B57;
 }
 
-form {
+.form-container {
     margin-bottom: 20px;
 }
 
 input[type="text"],
 input[type="file"] {
     padding: 10px;
-    margin: 10px 0;
-    width: 100%;
-    box-sizing: border-box;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
 }
 
 button {
-    padding: 10px 15px;
-    background-color: #28a745;
-    color: white;
+    background: linear-gradient(145deg, #3CB371, #40E0D0);
+    color: #ffffff;
+    padding: 10px 20px;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
 }
 
 button:hover {
-    background-color: #218838;
+    background: linear-gradient(145deg, #40E0D0, #3CB371);
+    transform: scale(1.05);
 }
 
-ul {
-    list-style-type: none;
-    padding: 0;
+.player-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
-li {
-    margin: 10px 0;
+.player-item {
+    background: linear-gradient(145deg, #3CB371, #40E0D0);
+    padding: 10px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-button {
-    margin-left: 10px;
+audio {
+    margin-top: 20px;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 10px;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Footer */
+footer {
+    margin-top: 40px;
+    font-size: 0.9rem;
+    color: #f0f0f0;
+}
+
+/* Diseño responsivo */
+@media (max-width: 600px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    button {
+        width: 100%;
+    }
 }

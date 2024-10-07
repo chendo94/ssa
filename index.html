@@ -3,38 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Jugadores y Canciones</title>
+    <title>Saraperitos - Reproductor de Canciones</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="register-section" class="section active">
-        <h2>Registrar Jugador</h2>
-        <form id="player-form">
-            <input type="text" id="player-name" placeholder="Nombre del Jugador" required>
-            <button type="submit">Registrar Jugador</button>
-        </form>
-    </div>
+    <header>
+        <h1>Saraperitos</h1>
+    </header>
+    
+    <main>
+        <h2>Registro de Jugadores y Canciones</h2>
+        <div class="form-container">
+            <input type="text" id="playerName" placeholder="Nombre del Jugador" required>
+            <input type="file" id="songUpload" accept="audio/*" required>
+            <button id="addPlayerBtn">Agregar Jugador</button>
+        </div>
 
-    <div id="upload-section" class="section">
-        <h2>Subir Canción para <span id="player-name-display"></span></h2>
-        <form id="song-form">
-            <input type="file" id="player-song" accept="audio/*" required>
-            <button type="submit">Subir Canción</button>
-        </form>
-        <button id="finish-registration">Finalizar Registro</button>
-    </div>
-
-    <div id="list-section" class="section">
         <h2>Lista de Jugadores</h2>
-        <ul id="player-list"></ul>
-        <button id="back-to-register-from-list">Regresar</button>
-    </div>
+        <div class="player-list" id="playerList">
+            <!-- Los elementos de los jugadores se generarán dinámicamente con JavaScript -->
+        </div>
 
-    <button id="view-players">Ver Jugadores</button>
-    <audio id="player" controls>
-        <source id="audio-source" src="">
-        Tu navegador no soporta el elemento de audio.
-    </audio>
+        <audio id="audioPlayer" controls>
+            <source id="audioSource" src="" type="audio/mpeg">
+            Tu navegador no soporta el elemento de audio.
+        </audio>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Saraperitos. Todos los derechos reservados.</p>
+    </footer>
 
     <script src="script.js"></script>
 </body>

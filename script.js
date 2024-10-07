@@ -1,136 +1,109 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const registerSection = document.getElementById('register-section');
-  const uploadSection = document.getElementById('upload-section');
-  const listSection = document.getElementById('list-section');
-  const playerForm = document.getElementById('player-form');
-  const songForm = document.getElementById('song-form');
-  const playerList = document.getElementById('player-list');
-  const audioPlayer = document.getElementById('player');
-  const audioSource = document.getElementById('audio-source');
-  const viewPlayersButton = document.getElementById('view-players');
-  const backToRegister = document.getElementById('back-to-register');
-  const backToRegisterFromList = document.getElementById('back-to-register-from-list');
-  const finishRegistrationButton = document.getElementById('finish-registration');
+// Inicializar IndexedDB
+let db;
+const request = indexedDB.open("SaraperitosDB", 1);
 
-  // Mostrar la sección de registro al cargar la página
-  registerSection.classList.add('active');
+request.onupgradeneeded = function(event) {
+    db = event.target.result;
+    db.createObjectStore("players", { keyPath: "id" });
+};
 
-  // Manejar el envío del formulario de registro de jugador
-  playerForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const playerName = document.getElementById('player-name').value;
-    const players = JSON.parse(localStorage.getItem('players')) || [];
+request.onsuccess = function(event) {
+    db = event.target.result;
+    loadPlayers(); // Cargar los jugadores al inicio
+};
 
-    // Verificar si se ha alcanzado el límite de 100 jugadores
-    if (players.length >= 100) {
-      alert('Se ha alcanzado el límite de 100 jugadores.');
-      return;
+request.onerror = function(event) {
+    console.error("Error al abrir la base de datos:", event.target.error);
+};
+
+// Agregar un jugador y su canción
+document.getElementById('addPlayerBtn').onclick = function() {
+    const playerName = document.getElementById('playerName').value;
+    const songUpload = document.getElementById('songUpload').files[0];
+
+    if (playerName && songUpload) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const songData = e.target.result;
+
+            const newPlayer = {
+                id: Date.now(),
+                name: playerName,
+                song: songData,
+                songName: songUpload.name
+            };
+
+            const transaction = db.transaction(["players"], "readwrite");
+            const store = transaction.objectStore("players");
+            store.add(newPlayer);
+
+            transaction.oncomplete = function() {
+                loadPlayers();
+                document.getElementById('playerName').value = '';
+                document.getElementById('songUpload').value = '';
+            };
+
+            transaction.onerror = function(event) {
+                console.error("Error al agregar el jugador:", event.target.error);
+            };
+        };
+
+        reader.readAsDataURL(songUpload);
     }
+};
 
-    // Agregar el jugador a la lista
-    players.push({ name: playerName, song: null }); // Inicialmente sin canción
-    localStorage.setItem('players', JSON.stringify(players));
-    document.getElementById('player-name').value = ''; // Limpiar el campo
-    registerSection.classList.remove('active');
-    uploadSection.classList.add('active');
-    document.getElementById('player-name-display').textContent = playerName; // Mostrar el nombre
-  });
+// Cargar jugadores desde IndexedDB
+function loadPlayers() {
+    const playerList = document.getElementById('playerList');
+    playerList.innerHTML = ''; // Limpiar la lista
 
-  // Manejar el envío del formulario de carga de canción
-  songForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const playerSong = document.getElementById('player-song').files[0];
-    const players = JSON.parse(localStorage.getItem('players')) || [];
-    const currentPlayerName = document.getElementById('player-name-display').textContent;
+    const transaction = db.transaction(["players"], "readonly");
+    const store = transaction.objectStore("players");
+    const request = store.getAll();
 
-    if (currentPlayerName && playerSong) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const updatedPlayers = players.map(player => {
-          if (player.name === currentPlayerName) {
-            return { ...player, song: e.target.result }; // Actualizar la canción
-          }
-          return player;
+    request.onsuccess = function(event) {
+        const players = event.target.result;
+        players.forEach(player => {
+            const playerItem = document.createElement('div');
+            playerItem.className = 'player-item';
+            playerItem.innerHTML = `
+                <span>${player.name}</span>
+                <button class="play-btn" data-song="${player.song}">Reproducir</button>
+                <input type="text" value="${player.name}" class="edit-name" data-id="${player.id}">
+                <button class="edit-btn" data-id="${player.id}">Guardar</button>
+            `;
+            playerList.appendChild(playerItem);
         });
-        localStorage.setItem('players', JSON.stringify(updatedPlayers));
-        alert('Canción registrada con éxito.'); // Notificación de éxito
-        uploadSection.classList.remove('active');
-        registerSection.classList.add('active');
-        document.getElementById('player-name-display').textContent = ''; // Limpiar el nombre
-        document.getElementById('player-song').value = ''; // Limpiar el campo de canción
-      };
-      reader.readAsDataURL(playerSong);
-    } else {
-      alert('Por favor, selecciona una canción para el jugador.');
-    }
-  });
 
-  // Mostrar la lista de jugadores
-  function displayPlayerList() {
-    const players = JSON.parse(localStorage.getItem('players')) || [];
-    playerList.innerHTML = '';
-    players.forEach(player => {
-      const listItem = document.createElement('li');
-      const playerButton = document.createElement('button');
-      playerButton.textContent = player.name;
+        // Agregar eventos de reproducción y edición
+        const playButtons = document.querySelectorAll('.play-btn');
+        playButtons.forEach(button => {
+            button.onclick = function() {
+                const song = this.getAttribute('data-song');
+                document.getElementById('audioSource').src = song;
+                document.getElementById('audioPlayer').load();
+                document.getElementById('audioPlayer').play();
+            };
+        });
 
-      playerButton.addEventListener('click', () => {
-        if (player.song) {
-          audioSource.src = player.song;
-          audioPlayer.load();
-          audioPlayer.play();
-        } else {
-          alert('Este jugador no tiene canción registrada.');
-        }
-      });
+        const editButtons = document.querySelectorAll('.edit-btn');
+        editButtons.forEach(button => {
+            button.onclick = function() {
+                const playerId = this.getAttribute('data-id');
+                const newName = this.previousElementSibling.value;
 
-      // Botón para eliminar jugador
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = 'Eliminar';
-      deleteButton.addEventListener('click', () => {
-        const updatedPlayers = players.filter(p => p.name !== player.name);
-        localStorage.setItem('players', JSON.stringify(updatedPlayers));
-        displayPlayerList(); // Actualizar la lista
-      });
+                // Actualizar el nombre en la base de datos
+                const transaction = db.transaction(["players"], "readwrite");
+                const store = transaction.objectStore("players");
+                const request = store.get(parseInt(playerId));
 
-      // Botón para modificar (subir canción)
-      const modifyButton = document.createElement('button');
-      modifyButton.textContent = 'Modificar Canción';
-      modifyButton.addEventListener('click', () => {
-        document.getElementById('player-name-display').textContent = player.name; // Mostrar el nombre
-        uploadSection.classList.add('active');
-        registerSection.classList.remove('active');
-      });
-
-      listItem.appendChild(playerButton);
-      listItem.appendChild(modifyButton);
-      listItem.appendChild(deleteButton);
-      playerList.appendChild(listItem);
-    });
-  }
-
-  // Manejar el botón de ver jugadores
-  viewPlayersButton.addEventListener('click', () => {
-    registerSection.classList.remove('active');
-    listSection.classList.add('active');
-    displayPlayerList();
-  });
-
-  // Manejar el botón de regresar
-  backToRegister.addEventListener('click', () => {
-    uploadSection.classList.remove('active');
-    registerSection.classList.add('active');
-  });
-
-  backToRegisterFromList.addEventListener('click', () => {
-    listSection.classList.remove('active');
-    registerSection.classList.add('active');
-  });
-
-  // Manejar el botón de finalizar registro
-  finishRegistrationButton.addEventListener('click', () => {
-    uploadSection.classList.remove('active');
-    listSection.classList.add('active');
-    displayPlayerList();
-  });
-});
+                request.onsuccess = function(event) {
+                    const player = event.target.result;
+                    player.name = newName;
+                    store.put(player);
+                    loadPlayers(); // Recargar la lista de jugadores
+                };
+            };
+        });
+    };
+}
